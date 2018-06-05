@@ -13,7 +13,7 @@ Matrix SquareMatrix(const int n){
   srandom(time(0)+clock()+random());
   for(int i = 0; i < n; i++){
     for(int j = 0; j < n; j++){
-      matrix[i][j] = i + j;//rand() % 4 + 1;
+      matrix[i][j] = i + j + 1;//rand() % 4 + 1;
       matrix[j][i] = matrix[i][j];
     }
   }
@@ -27,17 +27,28 @@ int main(int argc, char** argv){
   start = 0;
   end = 0;
   double elapsed_time = 0;
+
   MPI_Init(&argc, &argv);
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   elapsed_time -= MPI_Wtime();
-  ParallelJacobi(SquareMatrix(n), n, 1e-5);
+  Matrix m = SquareMatrix(n);
+    PrintMatrix(m, n);
+    printf("\n");
+  ParallelJacobi(m, n, 1e-5);
   elapsed_time += MPI_Wtime();
   if (rank == 0) {
+    for (int i = 0; i < n; ++i) {
+      printf("%f ", m[i][i]);
+    }
     printf("Dimension %i, time elapsed %f\n", n, elapsed_time);
     MPI_Abort(MPI_COMM_WORLD, MPI_SUCCESS);
   }
   MPI_Finalize();
+  for (int i = 0; i < n; ++i) {
+    delete[] m[i];
+  }
+  delete[] m;
   return 0;
 }
 
